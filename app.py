@@ -13,6 +13,7 @@ from dc_bias import (
     REGION_CUTOFF,
     REGION_SATURATION,
     BiasInputError,
+    BiasResult,
     calculate,
     parse_form,
 )
@@ -20,22 +21,33 @@ from dc_bias import (
 app = Flask(__name__)
 
 DEFAULT_FORM = {
-    "vcc": "12",
+    "vcc": "12.0",
+    "vcc_unit": "v",
     "r1": "100",
+    "r1_unit": "kohm",
     "r2": "22",
+    "r2_unit": "kohm",
     "rc": "2.2",
-    "re": "1",
+    "rc_unit": "kohm",
+    "re": "1.0",
+    "re_unit": "kohm",
     "beta": "100",
     "vbe": "0.70",
-    "unit": "kohm",
+    "vbe_unit": "v",
 }
 
 FORM_FIELDS = tuple(DEFAULT_FORM)
 
-REGION_LABELS = {
-    REGION_ACTIVE: "Active (Forward-Active)",
-    REGION_CUTOFF: "Cutoff",
-    REGION_SATURATION: "Saturation",
+REGION_TITLES = {
+    REGION_ACTIVE: "Active region approximation OK",
+    REGION_CUTOFF: "Cutoff region — model not applicable",
+    REGION_SATURATION: "Saturation — model not applicable",
+}
+
+REGION_LEVELS = {
+    REGION_ACTIVE: "ok",
+    REGION_CUTOFF: "warn",
+    REGION_SATURATION: "bad",
 }
 
 
@@ -43,36 +55,136 @@ def _read_form() -> dict[str, str]:
     return {key: request.form.get(key, "").strip() for key in FORM_FIELDS}
 
 
+UNIT_SYMBOLS = {
+    "v": "V",
+    "kv": "kV",
+    "mv": "mV",
+    "ohm": "Ω",
+    "kohm": "kΩ",
+    "mohm": "MΩ",
+}
+
+
+def _fmt_volts(value: float) -> str:
+    if value < 1.0:
+        return f"{value * 1e3:g} mV"
+    return f"{value:g} V"
+
+
+def _fmt_ohms(value: float) -> str:
+    if value >= 1e6:
+        scaled, unit = value / 1e6, "MΩ"
+    elif value >= 1e3:
+        scaled, unit = value / 1e3, "kΩ"
+    else:
+        scaled, unit = value, "Ω"
+    text = f"{scaled:g}"
+    if "." not in text and scaled < 10:
+        text += ".0"
+    return f"{text} {unit}"
+
+
+def _circuit_labels(raw: dict[str, str]) -> dict[str, str]:
+    """Values printed next to the schematic symbols."""
+
+    unknown = {"vcc": "?", "r1": "?", "r2": "?", "rc": "?", "re": "?", "beta": "?"}
+    try:
+        circuit = parse_form(raw)
+    except BiasInputError:
+        return _raw_circuit_labels(raw)
+    return {
+        "vcc": _fmt_volts(circuit.vcc),
+        "r1": _fmt_ohms(circuit.r1),
+        "r2": _fmt_ohms(circuit.r2),
+        "rc": _fmt_ohms(circuit.rc),
+        "re": _fmt_ohms(circuit.re),
+        "beta": f"{circuit.beta:g}",
+    }
+
+
+def _raw_circuit_labels(raw: dict[str, str]) -> dict[str, str]:
+    """Fallback while the form is invalid: show the text exactly as typed."""
+
+    def label(key: str) -> str:
+        value = str(raw.get(key, "")).strip() or "?"
+        unit = UNIT_SYMBOLS.get(str(raw.get(f"{key}_unit", "")).strip().lower(), "")
+        return f"{value} {unit}".strip()
+
+    return {key: label(key) for key in ("vcc", "r1", "r2", "rc", "re", "beta")}
+
+
+def _result_rows(result: BiasResult) -> list[dict[str, str]]:
+    """Rows of the results table, already formatted for display."""
+
+    return [
+        {"symbol": "V<sub>B</sub>", "value": f"{result.vb:.2f}", "unit": "V"},
+        {"symbol": "V<sub>E</sub>", "value": f"{result.ve:.2f}", "unit": "V"},
+        {"symbol": "V<sub>C</sub>", "value": f"{result.vc:.2f}", "unit": "V"},
+        {"symbol": "V<sub>CE</sub>", "value": f"{result.vce:.2f}", "unit": "V"},
+        {"symbol": "I<sub>B</sub>", "value": f"{result.ib_ua:.1f}", "unit": "µA"},
+        {"symbol": "I<sub>C</sub>", "value": f"{result.ic_ma:.2f}", "unit": "mA"},
+        {"symbol": "I<sub>E</sub>", "value": f"{result.ie_ma:.2f}", "unit": "mA"},
+    ]
+
+
+def _status_detail(result: BiasResult) -> str:
+    if result.region == REGION_ACTIVE:
+        return f"V<sub>CE</sub> = {result.vce:.2f} V &gt; 0.2 V (transistor in active region)"
+    if result.region == REGION_CUTOFF:
+        return (
+            f"V<sub>TH</sub> = {result.vth:.2f} V ≤ V<sub>BE</sub>: "
+            "no base current, equations do not apply"
+        )
+    return (
+        f"V<sub>CE</sub> = {result.vce:.2f} V ≤ 0.2 V "
+        "(transistor saturated, equations do not apply)"
+    )
+
+
 @app.get("/")
 def index():
+    form = dict(DEFAULT_FORM)
     return render_template(
         "index.html",
-        form=dict(DEFAULT_FORM),
+        form=form,
+        circuit=_circuit_labels(form),
         result=None,
+        rows=[],
         error=None,
-        region_labels=REGION_LABELS,
+        status=None,
     )
 
 
 @app.post("/calculate")
 def calculate_route():
     raw = _read_form()
+    labels = _circuit_labels(raw)
     try:
         result = calculate(parse_form(raw))
     except BiasInputError as exc:
         return render_template(
             "index.html",
             form=raw,
+            circuit=labels,
             result=None,
+            rows=[],
             error=exc,
-            region_labels=REGION_LABELS,
+            status=None,
         )
+
     return render_template(
         "index.html",
         form=raw,
+        circuit=labels,
         result=result,
+        rows=_result_rows(result),
         error=None,
-        region_labels=REGION_LABELS,
+        status={
+            "level": REGION_LEVELS[result.region],
+            "title": REGION_TITLES[result.region],
+            "detail": _status_detail(result),
+            "warnings": result.warnings,
+        },
     )
 
 

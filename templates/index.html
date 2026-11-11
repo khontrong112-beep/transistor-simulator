@@ -3,139 +3,271 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BJT DC Bias Calculator · ENG29 2121</title>
+  <title>Lab 02: BJT DC Bias Web App · ENG29 2121</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <header class="hero">
-    <div class="wrap">
-      <p class="eyebrow">ENG29 2121 · LAB 02 · COMPUTER PROGRAMMING FOR ELECTRICAL ENGINEERS</p>
-      <h1>BJT Common-Emitter DC Bias</h1>
-      <p class="sub">Voltage-Divider Bias · Forward-Active Approximation</p>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <rect x="7" y="7" width="10" height="10" rx="1.6"/>
+          <path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/>
+        </svg>
+      </span>
+      <div class="brand-text">
+        <h1>Lab 02: BJT DC Bias Web App</h1>
+        <p>ENG29 2121 — Common Emitter (Voltage Divider Bias)</p>
+      </div>
+    </div>
+    <div class="course-pill">
+      <span class="pill-icon" aria-hidden="true">&lt;/&gt;</span>
+      <span>Computer Programming for<br>Electrical Engineers</span>
     </div>
   </header>
 
-  <main class="wrap">
-    <section class="card">
-      <h2><span class="step">1</span> ข้อมูลวงจร</h2>
-      <p class="hint">
-        R1 ต่อระหว่าง VCC–Base, R2 ต่อ Base–Ground, RC ต่อ VCC–Collector,
-        RE ต่อ Emitter–Ground
-      </p>
+  <main class="dashboard">
+    <!-- ── 1. INPUT ───────────────────────────────────────────── -->
+    <section class="panel">
+      <h2 class="panel-title">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <circle cx="12" cy="12" r="3.2"/>
+          <path d="M12 2.6v2.8M12 18.6v2.8M2.6 12h2.8M18.6 12h2.8M5.4 5.4l2 2M16.6 16.6l2 2M18.6 5.4l-2 2M7.4 16.6l-2 2"/>
+        </svg>
+        Input Parameters
+      </h2>
 
       <form method="post" action="{{ url_for('calculate_route') }}" novalidate>
-        <div class="unit-row">
-          <label for="unit">หน่วยของตัวต้านทาน</label>
-          <select id="unit" name="unit">
-            <option value="kohm" {{ 'selected' if form.get('unit', 'kohm') == 'kohm' }}>kΩ</option>
-            <option value="ohm" {{ 'selected' if form.get('unit') == 'ohm' }}>Ω</option>
+        <div class="field">
+          <label class="field-label" for="vcc">
+            <span class="sym">V<sub>CC</sub></span>
+            <span class="desc">(Supply Voltage)</span>
+          </label>
+          <input id="vcc" name="vcc" type="number" step="any" value="{{ form.get('vcc', '') }}">
+          <select name="vcc_unit" aria-label="หน่วยของ VCC">
+            <option value="v" {{ 'selected' if form.get('vcc_unit', 'v') == 'v' }}>V</option>
+            <option value="kv" {{ 'selected' if form.get('vcc_unit') == 'kv' }}>kV</option>
           </select>
         </div>
 
-        <div class="grid">
-          <div class="field">
-            <label for="vcc">VCC <span class="u">V</span></label>
-            <input id="vcc" name="vcc" type="number" step="any" value="{{ form.get('vcc', '') }}">
-          </div>
-          <div class="field">
-            <label for="r1">R1</label>
-            <input id="r1" name="r1" type="number" step="any" value="{{ form.get('r1', '') }}">
-          </div>
-          <div class="field">
-            <label for="r2">R2</label>
-            <input id="r2" name="r2" type="number" step="any" value="{{ form.get('r2', '') }}">
-          </div>
-          <div class="field">
-            <label for="rc">RC</label>
-            <input id="rc" name="rc" type="number" step="any" value="{{ form.get('rc', '') }}">
-          </div>
-          <div class="field">
-            <label for="re">RE</label>
-            <input id="re" name="re" type="number" step="any" value="{{ form.get('re', '') }}">
-          </div>
-          <div class="field">
-            <label for="beta">β (hFE)</label>
-            <input id="beta" name="beta" type="number" step="any" value="{{ form.get('beta', '') }}">
-          </div>
-          <div class="field">
-            <label for="vbe">VBE <span class="u">V</span></label>
-            <input id="vbe" name="vbe" type="number" step="any" value="{{ form.get('vbe', '') }}">
-          </div>
+        <div class="field">
+          <label class="field-label" for="r1">
+            <span class="sym">R<sub>1</sub></span>
+            <span class="desc">(Upper Divider)</span>
+          </label>
+          <input id="r1" name="r1" type="number" step="any" value="{{ form.get('r1', '') }}">
+          <select name="r1_unit" aria-label="หน่วยของ R1">
+            <option value="kohm" {{ 'selected' if form.get('r1_unit', 'kohm') == 'kohm' }}>kΩ</option>
+            <option value="ohm" {{ 'selected' if form.get('r1_unit') == 'ohm' }}>Ω</option>
+            <option value="mohm" {{ 'selected' if form.get('r1_unit') == 'mohm' }}>MΩ</option>
+          </select>
         </div>
 
-        <button type="submit">Calculate DC Bias</button>
+        <div class="field">
+          <label class="field-label" for="r2">
+            <span class="sym">R<sub>2</sub></span>
+            <span class="desc">(Lower Divider)</span>
+          </label>
+          <input id="r2" name="r2" type="number" step="any" value="{{ form.get('r2', '') }}">
+          <select name="r2_unit" aria-label="หน่วยของ R2">
+            <option value="kohm" {{ 'selected' if form.get('r2_unit', 'kohm') == 'kohm' }}>kΩ</option>
+            <option value="ohm" {{ 'selected' if form.get('r2_unit') == 'ohm' }}>Ω</option>
+            <option value="mohm" {{ 'selected' if form.get('r2_unit') == 'mohm' }}>MΩ</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="rc">
+            <span class="sym">R<sub>C</sub></span>
+            <span class="desc">(Collector Resistor)</span>
+          </label>
+          <input id="rc" name="rc" type="number" step="any" value="{{ form.get('rc', '') }}">
+          <select name="rc_unit" aria-label="หน่วยของ RC">
+            <option value="kohm" {{ 'selected' if form.get('rc_unit', 'kohm') == 'kohm' }}>kΩ</option>
+            <option value="ohm" {{ 'selected' if form.get('rc_unit') == 'ohm' }}>Ω</option>
+            <option value="mohm" {{ 'selected' if form.get('rc_unit') == 'mohm' }}>MΩ</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="re">
+            <span class="sym">R<sub>E</sub></span>
+            <span class="desc">(Emitter Resistor)</span>
+          </label>
+          <input id="re" name="re" type="number" step="any" value="{{ form.get('re', '') }}">
+          <select name="re_unit" aria-label="หน่วยของ RE">
+            <option value="kohm" {{ 'selected' if form.get('re_unit', 'kohm') == 'kohm' }}>kΩ</option>
+            <option value="ohm" {{ 'selected' if form.get('re_unit') == 'ohm' }}>Ω</option>
+            <option value="mohm" {{ 'selected' if form.get('re_unit') == 'mohm' }}>MΩ</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="beta">
+            <span class="sym">β</span>
+            <span class="desc">(Current Gain)</span>
+          </label>
+          <input id="beta" name="beta" type="number" step="any" value="{{ form.get('beta', '') }}">
+          <span class="unit-static">–</span>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="vbe">
+            <span class="sym">V<sub>BE</sub></span>
+            <span class="desc">(Base-Emitter Voltage)</span>
+          </label>
+          <input id="vbe" name="vbe" type="number" step="any" value="{{ form.get('vbe', '') }}">
+          <select name="vbe_unit" aria-label="หน่วยของ VBE">
+            <option value="v" {{ 'selected' if form.get('vbe_unit', 'v') == 'v' }}>V</option>
+            <option value="mv" {{ 'selected' if form.get('vbe_unit') == 'mv' }}>mV</option>
+          </select>
+        </div>
+
+        <button type="submit" class="calc-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <rect x="4.5" y="3" width="15" height="18" rx="2.2"/>
+            <path d="M8 7.5h8M8 12h2.6M8 16.5h2.6M14 11.4l2.2 2.2M16.2 11.4L14 13.6"/>
+          </svg>
+          Calculate DC Bias
+        </button>
       </form>
     </section>
 
-    {% if error %}
-    <section class="card error-card" role="alert">
-      <h2><span class="step">!</span> ข้อมูลไม่ถูกต้อง</h2>
-      <p class="error-text">{{ error.message }}</p>
-      <p class="hint">แก้ไขช่อง {{ error.field_name }} แล้วกด Calculate DC Bias อีกครั้ง</p>
+    <!-- ── 2. CIRCUIT ─────────────────────────────────────────── -->
+    <section class="panel">
+      <h2 class="panel-title">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <circle cx="5.5" cy="6" r="2.2"/>
+          <circle cx="18.5" cy="6" r="2.2"/>
+          <circle cx="12" cy="18" r="2.2"/>
+          <path d="M7.7 6h8.6M6.6 8.1l4.3 7.8M17.4 8.1l-4.3 7.8"/>
+        </svg>
+        Circuit: Common-Emitter Amplifier
+      </h2>
+
+      <figure class="circuit-figure">
+        <svg class="circuit" viewBox="0 0 340 400" role="img"
+             aria-label="Schematic: NPN common-emitter amplifier with voltage divider bias">
+          <g class="wire">
+            <line x1="110" y1="80" x2="250" y2="80"/>
+            <line x1="180" y1="80" x2="180" y2="60"/>
+
+            <line x1="110" y1="80" x2="110" y2="96"/>
+            <path d="M110 96 L110 102 l10 6 l-20 12 l20 12 l-20 12 l10 6 L110 150"/>
+            <line x1="110" y1="150" x2="110" y2="240"/>
+
+            <line x1="110" y1="240" x2="110" y2="262"/>
+            <path d="M110 262 L110 268 l10 6 l-20 12 l20 12 l-20 12 l10 6 L110 316"/>
+            <line x1="110" y1="316" x2="110" y2="340"/>
+            <line x1="96" y1="340" x2="124" y2="340"/>
+            <line x1="101" y1="346" x2="119" y2="346"/>
+            <line x1="106" y1="352" x2="114" y2="352"/>
+
+            <line x1="250" y1="80" x2="250" y2="96"/>
+            <path d="M250 96 L250 102 l10 6 l-20 12 l20 12 l-20 12 l10 6 L250 150"/>
+            <line x1="250" y1="150" x2="250" y2="200"/>
+
+            <line x1="216" y1="281" x2="216" y2="300"/>
+            <path d="M216 300 L216 306 l10 6 l-20 12 l20 12 l-20 12 l10 6 L216 354"/>
+            <line x1="216" y1="354" x2="216" y2="374"/>
+            <line x1="202" y1="374" x2="230" y2="374"/>
+            <line x1="207" y1="380" x2="225" y2="380"/>
+            <line x1="212" y1="386" x2="220" y2="386"/>
+          </g>
+
+          <circle cx="196" cy="240" r="34" class="tr-circle"/>
+
+          <g class="wire">
+            <line x1="110" y1="240" x2="178" y2="240"/>
+            <line x1="178" y1="222" x2="178" y2="258" class="tr-bar"/>
+            <line x1="178" y1="231" x2="250" y2="200"/>
+            <line x1="178" y1="249" x2="216" y2="281"/>
+          </g>
+          <polygon points="216,281 203.9,276.7 209.7,269.9" class="arrow"/>
+
+          <circle cx="110" cy="240" r="3.2" class="node"/>
+          <circle cx="180" cy="80" r="3.2" class="node"/>
+
+          <text x="180" y="48" text-anchor="middle" class="lbl">V<tspan class="sub">CC</tspan> = {{ circuit.vcc }}</text>
+
+          <text x="96" y="112" text-anchor="end" class="lbl">R<tspan class="sub">1</tspan></text>
+          <text x="96" y="128" text-anchor="end" class="val">{{ circuit.r1 }}</text>
+
+          <text x="96" y="288" text-anchor="end" class="lbl">R<tspan class="sub">2</tspan></text>
+          <text x="96" y="304" text-anchor="end" class="val">{{ circuit.r2 }}</text>
+
+          <text x="264" y="112" class="lbl">R<tspan class="sub">C</tspan></text>
+          <text x="264" y="128" class="val">{{ circuit.rc }}</text>
+
+          <text x="232" y="326" class="lbl">R<tspan class="sub">E</tspan></text>
+          <text x="232" y="342" class="val">{{ circuit.re }}</text>
+
+          <text x="238" y="232" class="lbl">Q<tspan class="sub">1</tspan></text>
+          <text x="238" y="248" class="val">NPN</text>
+          <text x="238" y="264" class="val">(β = {{ circuit.beta }})</text>
+        </svg>
+      </figure>
     </section>
-    {% endif %}
 
-    {% if result %}
-    <section class="card">
-      <h2><span class="step">2</span> DC Bias Results</h2>
+    <!-- ── 3. RESULTS ─────────────────────────────────────────── -->
+    <section class="panel">
+      <h2 class="panel-title">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path d="M4 20h16"/>
+          <rect x="6" y="12" width="3" height="6" rx="0.8"/>
+          <rect x="11" y="8" width="3" height="10" rx="0.8"/>
+          <rect x="16" y="4" width="3" height="14" rx="0.8"/>
+        </svg>
+        DC Bias Results
+      </h2>
 
-      <p class="region-label">
-        Operating Region:
-        <span class="badge badge-{{ result.region }}">{{ region_labels[result.region] }}</span>
-      </p>
+      {% if error %}
+        <div class="status status-bad" role="alert">
+          <div class="status-head">
+            <span class="status-ico">!</span>
+            <strong>ข้อมูลไม่ถูกต้อง</strong>
+          </div>
+          <p class="status-detail">{{ error.message }}</p>
+          <p class="status-note">แก้ไขช่อง {{ error.field_name }} แล้วกด Calculate DC Bias อีกครั้ง</p>
+        </div>
+      {% elif result %}
+        <table class="results">
+          <caption>DC operating point from the Python backend</caption>
+          <tbody>
+            {% for row in rows %}
+            <tr>
+              <th scope="row">{{ row.symbol | safe }}</th>
+              <td>{{ row.value }} <span class="unit">{{ row.unit }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
 
-      {% if result.warnings %}
-      <div class="warning" role="status">
-        <strong>ข้อจำกัดของแบบจำลอง</strong>
-        <ul>
-          {% for message in result.warnings %}
-          <li>{{ message }}</li>
-          {% endfor %}
-        </ul>
-      </div>
+        <div class="status status-{{ status.level }}">
+          <div class="status-head">
+            <span class="status-ico">{% if status.level == 'ok' %}✓{% elif status.level == 'warn' %}!{% else %}×{% endif %}</span>
+            <strong>{{ status.title }}</strong>
+          </div>
+          <p class="status-detail">{{ status.detail | safe }}</p>
+          {% if status.warnings %}
+          <ul class="status-warnings">
+            {% for message in status.warnings %}
+            <li>{{ message }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
       {% else %}
-      <p class="ok">ผลลัพธ์อยู่ในย่าน Forward-Active: แบบจำลองนี้ใช้ได้</p>
+        <p class="placeholder">
+          กรอกค่าชิ้นส่วนแล้วกด <strong>Calculate DC Bias</strong><br>
+          ผลลัพธ์จะถูกคำนวณด้วย Python บน Server
+        </p>
       {% endif %}
-
-      <table>
-        <caption>ค่าที่คำนวณได้จาก Python Backend</caption>
-        <thead>
-          <tr><th>ปริมาณ</th><th>ค่า</th><th>หน่วย</th><th>สมการ</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>V<sub>TH</sub></td><td>{{ '%.3f' | format(result.vth) }}</td><td>V</td><td>VCC·R2/(R1+R2)</td></tr>
-          <tr><td>R<sub>TH</sub></td><td>{{ '%.3f' | format(result.rth_kohm) }}</td><td>kΩ</td><td>R1·R2/(R1+R2)</td></tr>
-          <tr><td>I<sub>B</sub></td><td>{{ '%.3f' | format(result.ib_ua) }}</td><td>µA</td><td>(VTH−VBE)/(RTH+(β+1)RE)</td></tr>
-          <tr class="key"><td>I<sub>C</sub></td><td>{{ '%.3f' | format(result.ic_ma) }}</td><td>mA</td><td>β·IB</td></tr>
-          <tr><td>I<sub>E</sub></td><td>{{ '%.3f' | format(result.ie_ma) }}</td><td>mA</td><td>(β+1)·IB</td></tr>
-          <tr class="key"><td>V<sub>B</sub></td><td>{{ '%.3f' | format(result.vb) }}</td><td>V</td><td>VE+VBE</td></tr>
-          <tr class="key"><td>V<sub>E</sub></td><td>{{ '%.3f' | format(result.ve) }}</td><td>V</td><td>IE·RE</td></tr>
-          <tr class="key"><td>V<sub>C</sub></td><td>{{ '%.3f' | format(result.vc) }}</td><td>V</td><td>VCC−IC·RC</td></tr>
-          <tr class="key"><td>V<sub>CE</sub></td><td>{{ '%.3f' | format(result.vce) }}</td><td>V</td><td>VC−VE</td></tr>
-        </tbody>
-      </table>
-
-      <p class="hint">
-        แบบจำลองนี้ใช้ β คงที่และ VBE คงที่ ไม่ใช่การจำลอง SPICE
-        ผลที่ได้จึงใช้ได้เฉพาะเมื่อทรานซิสเตอร์อยู่ในย่าน Forward-Active
-      </p>
-    </section>
-    {% endif %}
-
-    <section class="card muted-card">
-      <h2><span class="step">i</span> สมการที่ใช้</h2>
-      <pre><code>VTH = VCC · R2 / (R1 + R2)
-RTH = R1 · R2 / (R1 + R2)
-IB  = (VTH − VBE) / (RTH + (β + 1) · RE)
-IC  = β · IB
-IE  = (β + 1) · IB
-VE  = IE · RE
-VB  = VE + VBE
-VC  = VCC − IC · RC
-VCE = VC − VE</code></pre>
     </section>
   </main>
 
-  <footer class="wrap">ENG29 2121 · Lab 02 · Flask + Python Backend</footer>
+  <footer class="footer">
+    ENG29 2121 · Lab 02 · Flask + Python backend · Forward-Active Approximation
+  </footer>
 </body>
 </html>

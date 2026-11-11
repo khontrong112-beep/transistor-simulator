@@ -19,6 +19,7 @@ VCE_SAT = 0.2
 NEAR_SATURATION = 1.0
 
 OHM_UNITS = {"ohm": 1.0, "kohm": 1_000.0, "mohm": 1_000_000.0}
+VOLT_UNITS = {"v": 1.0, "kv": 1_000.0, "mv": 0.001}
 
 FIELD_LABELS = {
     "vcc": "VCC",
@@ -105,25 +106,42 @@ def _parse_number(raw: Mapping[str, str], key: str) -> float:
     return value
 
 
-def _parse_unit(raw: Mapping[str, str]) -> float:
-    unit = str(raw.get("unit", "kohm")).strip().lower() or "kohm"
-    if unit not in OHM_UNITS:
-        raise BiasInputError("unit", "หน่วยความต้านทานไม่ถูกต้อง")
-    return OHM_UNITS[unit]
+def _unit_scale(
+    raw: Mapping[str, str],
+    field_name: str,
+    table: Mapping[str, float],
+    default: str,
+    legacy_key: str | None = None,
+) -> float:
+    """Resolve the unit dropdown that belongs to one input field.
+
+    A missing per-field unit falls back to the legacy shared ``unit`` key (used
+    by the early single-dropdown version of the form) and then to ``default``.
+    """
+
+    value = raw.get(f"{field_name}_unit")
+    if value is None or str(value).strip() == "":
+        legacy = str(raw.get(legacy_key, "")).strip() if legacy_key else ""
+        value = legacy or default
+
+    key = str(value).strip().lower()
+    if key not in table:
+        raise BiasInputError(
+            f"{field_name}_unit", f"หน่วยของ {FIELD_LABELS[field_name]} ไม่ถูกต้อง"
+        )
+    return table[key]
 
 
 def parse_form(raw: Mapping[str, str]) -> BiasInput:
     """Validate raw form strings and convert them to SI units."""
 
-    scale = _parse_unit(raw)
-
-    vcc = _parse_number(raw, "vcc")
-    r1 = _parse_number(raw, "r1") * scale
-    r2 = _parse_number(raw, "r2") * scale
-    rc = _parse_number(raw, "rc") * scale
-    re = _parse_number(raw, "re") * scale
+    vcc = _parse_number(raw, "vcc") * _unit_scale(raw, "vcc", VOLT_UNITS, "v")
+    r1 = _parse_number(raw, "r1") * _unit_scale(raw, "r1", OHM_UNITS, "kohm", "unit")
+    r2 = _parse_number(raw, "r2") * _unit_scale(raw, "r2", OHM_UNITS, "kohm", "unit")
+    rc = _parse_number(raw, "rc") * _unit_scale(raw, "rc", OHM_UNITS, "kohm", "unit")
+    re = _parse_number(raw, "re") * _unit_scale(raw, "re", OHM_UNITS, "kohm", "unit")
     beta = _parse_number(raw, "beta")
-    vbe = _parse_number(raw, "vbe")
+    vbe = _parse_number(raw, "vbe") * _unit_scale(raw, "vbe", VOLT_UNITS, "v")
 
     if vcc <= 0:
         raise BiasInputError("vcc", "VCC ต้องมากกว่า 0 V")

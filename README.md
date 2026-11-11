@@ -45,7 +45,7 @@ Open <http://127.0.0.1:5000/> in a browser.
 python -m unittest discover -s tests -v
 ```
 
-Expected: **19 tests, OK** (15 engineering tests + 4 HTTP tests).
+Expected: **22 tests, OK** (17 engineering tests + 5 HTTP tests).
 
 ## Project structure
 
@@ -61,15 +61,18 @@ transistor-simulator/
 ├── docs/
 │   ├── design-note.md   # why the app is built this way
 │   ├── validation.md    # hand calculation vs. program output
-│   └── reflection.md    # student reflection (to be completed)
+│   ├── reflection.md    # student reflection (to be completed)
+│   ├── screenshot-results.jpeg
+│   └── screenshot-error.jpeg
 ├── requirements.txt
 └── AGENTS.md            # conventions for AI coding assistants
 ```
 
 ## Engineering model
 
-Inputs: `VCC`, `R1`, `R2`, `RC`, `RE`, `β`, `VBE`. Resistors may be entered in
-kΩ (default) or Ω.
+Inputs: `VCC`, `R1`, `R2`, `RC`, `RE`, `β`, `VBE`. Each input has its own unit
+dropdown: `V`/`kV` for VCC, `kΩ`/`Ω`/`MΩ` for the four resistors, `V`/`mV` for
+VBE, and none for β.
 
 ```
 VTH = VCC · R2 / (R1 + R2)

@@ -82,6 +82,32 @@ class UnitHandlingTest(unittest.TestCase):
         self.assertAlmostEqual(in_kohm.ic, in_ohm.ic, places=12)
         self.assertAlmostEqual(in_kohm.vce, in_ohm.vce, places=12)
 
+    def test_per_field_units_are_independent(self):
+        mixed = {
+            "vcc": "12",
+            "vcc_unit": "v",
+            "r1": "100",
+            "r1_unit": "kohm",
+            "r2": "22000",
+            "r2_unit": "ohm",
+            "rc": "2.2",
+            "rc_unit": "kohm",
+            "re": "1000",
+            "re_unit": "ohm",
+            "beta": "100",
+            "vbe": "700",
+            "vbe_unit": "mv",
+        }
+        reference = calculate(parse_form(LAB_FORM))
+        result = calculate(parse_form(mixed))
+        self.assertAlmostEqual(reference.ic, result.ic, places=12)
+        self.assertAlmostEqual(reference.vce, result.vce, places=12)
+
+    def test_unknown_unit_is_rejected(self):
+        with self.assertRaises(BiasInputError) as ctx:
+            parse_form(form(r1_unit="furlong"))
+        self.assertEqual(ctx.exception.field_name, "r1_unit")
+
 
 class OperatingRegionTest(unittest.TestCase):
     def test_cutoff_when_divider_voltage_below_vbe(self):

@@ -50,18 +50,18 @@ VCE = VCC − IC·RC − IE·RE
 
 ### Comparison
 
-| Quantity | Hand calculation | Web app | Agree? |
+| Quantity | Hand calculation | Web app (2 dp) | Agree? |
 | --- | --- | --- | --- |
-| VTH | 2.164 V | 2.164 V | ✓ |
-| RTH | 18.033 kΩ | 18.033 kΩ | ✓ |
-| IB | 12.299 µA | 12.299 µA | ✓ |
-| IC | 1.230 mA | 1.230 mA | ✓ |
-| IE | 1.242 mA | 1.242 mA | ✓ |
-| VB | 1.942 V | 1.942 V | ✓ |
-| VE | 1.242 V | 1.242 V | ✓ |
-| VC | 9.294 V | 9.294 V | ✓ |
-| VCE | 8.052 V | 8.052 V | ✓ |
-| Region | `VTH > VBE`, `VCE = 8.05 V > 0.2 V` → Active | Active | ✓ |
+| VTH | 2.164 V | shown next to VCC only as divider input | ✓ |
+| RTH | 18.033 kΩ | not displayed | — |
+| IB | 12.299 µA | 12.3 µA | ✓ |
+| IC | 1.230 mA | 1.23 mA | ✓ |
+| IE | 1.242 mA | 1.24 mA | ✓ |
+| VB | 1.942 V | 1.94 V | ✓ |
+| VE | 1.242 V | 1.24 V | ✓ |
+| VC | 9.294 V | 9.29 V | ✓ |
+| VCE | 8.052 V | 8.05 V | ✓ |
+| Region | `VTH > VBE` and `VCE = 8.05 V > 0.2 V` → Active | Active | ✓ |
 
 `IC·RC + IE·RE + VCE = 2.706 + 1.242 + 8.052 = 12.000 V = VCC` — the operating
 point is self-consistent.
@@ -139,12 +139,13 @@ No traceback reaches the browser.
 ```
 $ python -m unittest discover -s tests -v
 ...
-Ran 19 tests in 0.062s
+Ran 22 tests in 0.042s
 
 OK
 ```
 
-- 15 tests cover `dc_bias.py`: reference operating point, Kirchhoff check, unit
-  equivalence, cutoff, saturation, and seven validation cases.
-- 4 tests cover the HTTP layer: `GET /`, valid POST, invalid resistor POST, and
-  non-numeric POST.
+- 17 tests cover `dc_bias.py`: reference operating point, Kirchhoff check, unit
+  equivalence (shared and per-field dropdowns), cutoff, saturation, and seven
+  validation cases.
+- 5 tests cover the HTTP layer: `GET /`, valid POST, invalid resistor POST,
+  non-numeric POST, and per-field unit handling.

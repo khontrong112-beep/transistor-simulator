@@ -49,11 +49,13 @@ Decisions:
 
 | Field | Unit | Validation |
 | --- | --- | --- |
-| `vcc` | V | `> 0` |
-| `r1`, `r2`, `rc`, `re` | Ω or kΩ | `> 0` after unit conversion |
+| `vcc` | `vcc_unit`: V, kV | `> 0` |
+| `r1`, `r2`, `rc`, `re` | `rN_unit`: kΩ, Ω, MΩ | `> 0` after unit conversion |
 | `beta` | – | `> 0` |
-| `vbe` | V | `0 ≤ VBE < VCC` |
-| `unit` | `ohm` \| `kohm` | one of the two |
+| `vbe` | `vbe_unit`: V, mV | `0 ≤ VBE < VCC` |
+
+A missing per-field unit falls back to the legacy shared `unit` key and then to
+kΩ / V, so old payloads keep working.
 
 Result object: `vth`, `rth`, `ib`, `ic`, `ie`, `vb`, `ve`, `vc`, `vce`,
 `region`, `warnings`.
