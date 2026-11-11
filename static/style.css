@@ -1,0 +1,293 @@
+:root {
+  --navy: #103658;
+  --blue: #1d638b;
+  --teal: #0c8078;
+  --paper: #f5f8fc;
+  --ink: #17344b;
+  --muted: #546d83;
+  --line: #d3e0ec;
+  --orange: #b85c2c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.7 Tahoma, "Noto Sans Thai", "Leelawadee UI", Arial, sans-serif;
+}
+
+.wrap {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.hero {
+  background: linear-gradient(115deg, #0c304f, #20577d 70%, #0c6e79);
+  color: #fff;
+  padding: 34px 20px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: #cfe8f8;
+}
+
+.hero h1 {
+  margin: 0 0 6px;
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+}
+
+.sub {
+  margin: 0;
+  color: #d7ecfa;
+  font-size: 14px;
+}
+
+main {
+  padding: 18px 20px 40px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 22px 24px;
+  margin: 16px 0;
+}
+
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 1.2rem;
+  color: #113c60;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  font-size: 14px;
+  flex: 0 0 26px;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 13.5px;
+  margin: 8px 0;
+}
+
+.unit-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 16px;
+}
+
+.unit-row label {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+select {
+  padding: 7px 10px;
+  border: 1px solid #b9cddf;
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+}
+
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: bold;
+  color: #254d6b;
+  margin-bottom: 5px;
+}
+
+.field .u {
+  color: var(--muted);
+  font-weight: normal;
+}
+
+input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid #b9cddf;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 15px;
+  background: #fbfdff;
+}
+
+input:focus,
+select:focus {
+  outline: 2px solid #8fc0dd;
+  border-color: var(--blue);
+}
+
+button {
+  margin-top: 18px;
+  padding: 11px 22px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--teal);
+  color: #fff;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #096a63;
+}
+
+.error-card {
+  border-left: 4px solid var(--orange);
+}
+
+.error-text {
+  margin: 0;
+  color: #a4401c;
+  font-weight: bold;
+}
+
+.region-label {
+  font-size: 15px;
+  margin: 0 0 10px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 11px;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 13.5px;
+  color: #fff;
+}
+
+.badge-active {
+  background: #178875;
+}
+
+.badge-cutoff {
+  background: #6b7f93;
+}
+
+.badge-saturation {
+  background: #b85c2c;
+}
+
+.warning {
+  background: #fff4e9;
+  border-left: 4px solid var(--orange);
+  border-radius: 0 6px 6px 0;
+  padding: 11px 15px;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+.warning ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+
+.ok {
+  margin: 10px 0;
+  font-size: 14px;
+  color: #0c6b5f;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+caption {
+  text-align: left;
+  font-size: 12.5px;
+  color: var(--muted);
+  padding-bottom: 6px;
+}
+
+th,
+td {
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  text-align: left;
+}
+
+th {
+  background: #e6f1fa;
+  color: #123e5c;
+}
+
+tbody tr:nth-child(even) {
+  background: #f7fbfe;
+}
+
+tr.key td {
+  font-weight: bold;
+}
+
+td:nth-child(2) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+pre {
+  background: #102c42;
+  color: #eef7ff;
+  padding: 15px 17px;
+  border-radius: 6px;
+  font: 13px/1.6 Consolas, Menlo, monospace;
+  overflow-x: auto;
+  margin: 0;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+footer {
+  padding: 0 20px 28px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 620px) {
+  main {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 17px 15px;
+  }
+
+  table {
+    font-size: 12.5px;
+  }
+}

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BJT DC Bias Calculator · ENG29 2121</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <p class="eyebrow">ENG29 2121 · LAB 02 · COMPUTER PROGRAMMING FOR ELECTRICAL ENGINEERS</p>
+      <h1>BJT Common-Emitter DC Bias</h1>
+      <p class="sub">Voltage-Divider Bias · Forward-Active Approximation</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <h2><span class="step">1</span> ข้อมูลวงจร</h2>
+      <p class="hint">
+        R1 ต่อระหว่าง VCC–Base, R2 ต่อ Base–Ground, RC ต่อ VCC–Collector,
+        RE ต่อ Emitter–Ground
+      </p>
+
+      <form method="post" action="{{ url_for('calculate_route') }}" novalidate>
+        <div class="unit-row">
+          <label for="unit">หน่วยของตัวต้านทาน</label>
+          <select id="unit" name="unit">
+            <option value="kohm" {{ 'selected' if form.get('unit', 'kohm') == 'kohm' }}>kΩ</option>
+            <option value="ohm" {{ 'selected' if form.get('unit') == 'ohm' }}>Ω</option>
+          </select>
+        </div>
+
+        <div class="grid">
+          <div class="field">
+            <label for="vcc">VCC <span class="u">V</span></label>
+            <input id="vcc" name="vcc" type="number" step="any" value="{{ form.get('vcc', '') }}">
+          </div>
+          <div class="field">
+            <label for="r1">R1</label>
+            <input id="r1" name="r1" type="number" step="any" value="{{ form.get('r1', '') }}">
+          </div>
+          <div class="field">
+            <label for="r2">R2</label>
+            <input id="r2" name="r2" type="number" step="any" value="{{ form.get('r2', '') }}">
+          </div>
+          <div class="field">
+            <label for="rc">RC</label>
+            <input id="rc" name="rc" type="number" step="any" value="{{ form.get('rc', '') }}">
+          </div>
+          <div class="field">
+            <label for="re">RE</label>
+            <input id="re" name="re" type="number" step="any" value="{{ form.get('re', '') }}">
+          </div>
+          <div class="field">
+            <label for="beta">β (hFE)</label>
+            <input id="beta" name="beta" type="number" step="any" value="{{ form.get('beta', '') }}">
+          </div>
+          <div class="field">
+            <label for="vbe">VBE <span class="u">V</span></label>
+            <input id="vbe" name="vbe" type="number" step="any" value="{{ form.get('vbe', '') }}">
+          </div>
+        </div>
+
+        <button type="submit">Calculate DC Bias</button>
+      </form>
+    </section>
+
+    {% if error %}
+    <section class="card error-card" role="alert">
+      <h2><span class="step">!</span> ข้อมูลไม่ถูกต้อง</h2>
+      <p class="error-text">{{ error.message }}</p>
+      <p class="hint">แก้ไขช่อง {{ error.field_name }} แล้วกด Calculate DC Bias อีกครั้ง</p>
+    </section>
+    {% endif %}
+
+    {% if result %}
+    <section class="card">
+      <h2><span class="step">2</span> DC Bias Results</h2>
+
+      <p class="region-label">
+        Operating Region:
+        <span class="badge badge-{{ result.region }}">{{ region_labels[result.region] }}</span>
+      </p>
+
+      {% if result.warnings %}
+      <div class="warning" role="status">
+        <strong>ข้อจำกัดของแบบจำลอง</strong>
+        <ul>
+          {% for message in result.warnings %}
+          <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% else %}
+      <p class="ok">ผลลัพธ์อยู่ในย่าน Forward-Active: แบบจำลองนี้ใช้ได้</p>
+      {% endif %}
+
+      <table>
+        <caption>ค่าที่คำนวณได้จาก Python Backend</caption>
+        <thead>
+          <tr><th>ปริมาณ</th><th>ค่า</th><th>หน่วย</th><th>สมการ</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>V<sub>TH</sub></td><td>{{ '%.3f' | format(result.vth) }}</td><td>V</td><td>VCC·R2/(R1+R2)</td></tr>
+          <tr><td>R<sub>TH</sub></td><td>{{ '%.3f' | format(result.rth_kohm) }}</td><td>kΩ</td><td>R1·R2/(R1+R2)</td></tr>
+          <tr><td>I<sub>B</sub></td><td>{{ '%.3f' | format(result.ib_ua) }}</td><td>µA</td><td>(VTH−VBE)/(RTH+(β+1)RE)</td></tr>
+          <tr class="key"><td>I<sub>C</sub></td><td>{{ '%.3f' | format(result.ic_ma) }}</td><td>mA</td><td>β·IB</td></tr>
+          <tr><td>I<sub>E</sub></td><td>{{ '%.3f' | format(result.ie_ma) }}</td><td>mA</td><td>(β+1)·IB</td></tr>
+          <tr class="key"><td>V<sub>B</sub></td><td>{{ '%.3f' | format(result.vb) }}</td><td>V</td><td>VE+VBE</td></tr>
+          <tr class="key"><td>V<sub>E</sub></td><td>{{ '%.3f' | format(result.ve) }}</td><td>V</td><td>IE·RE</td></tr>
+          <tr class="key"><td>V<sub>C</sub></td><td>{{ '%.3f' | format(result.vc) }}</td><td>V</td><td>VCC−IC·RC</td></tr>
+          <tr class="key"><td>V<sub>CE</sub></td><td>{{ '%.3f' | format(result.vce) }}</td><td>V</td><td>VC−VE</td></tr>
+        </tbody>
+      </table>
+
+      <p class="hint">
+        แบบจำลองนี้ใช้ β คงที่และ VBE คงที่ ไม่ใช่การจำลอง SPICE
+        ผลที่ได้จึงใช้ได้เฉพาะเมื่อทรานซิสเตอร์อยู่ในย่าน Forward-Active
+      </p>
+    </section>
+    {% endif %}
+
+    <section class="card muted-card">
+      <h2><span class="step">i</span> สมการที่ใช้</h2>
+      <pre><code>VTH = VCC · R2 / (R1 + R2)
+RTH = R1 · R2 / (R1 + R2)
+IB  = (VTH − VBE) / (RTH + (β + 1) · RE)
+IC  = β · IB
+IE  = (β + 1) · IB
+VE  = IE · RE
+VB  = VE + VBE
+VC  = VCC − IC · RC
+VCE = VC − VE</code></pre>
+    </section>
+  </main>
+
+  <footer class="wrap">ENG29 2121 · Lab 02 · Flask + Python Backend</footer>
+</body>
+</html>
