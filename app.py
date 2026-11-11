@@ -127,6 +127,66 @@ def _result_rows(result: BiasResult) -> list[dict[str, str]]:
     ]
 
 
+def _steps(circuit, result: BiasResult) -> list[dict[str, str]]:
+    """Substitution trail so every displayed number can be re-checked by hand."""
+
+    r1, r2, rc, re = (
+        _fmt_ohms(circuit.r1),
+        _fmt_ohms(circuit.r2),
+        _fmt_ohms(circuit.rc),
+        _fmt_ohms(circuit.re),
+    )
+    beta = f"{circuit.beta:g}"
+
+    if result.region == REGION_CUTOFF:
+        return [
+            {
+                "name": "V<sub>TH</sub>",
+                "expr": f"{circuit.vcc:g} V × {r2} / ({r1} + {r2})",
+                "value": f"{result.vth:.3f} V",
+            },
+            {
+                "name": "เงื่อนไข",
+                "expr": "V<sub>TH</sub> ≤ V<sub>BE</sub> → ไม่มีกระแสฐาน",
+                "value": "I<sub>B</sub> = 0",
+            },
+        ]
+
+    return [
+        {
+            "name": "V<sub>TH</sub>",
+            "expr": f"{circuit.vcc:g} V × {r2} / ({r1} + {r2})",
+            "value": f"{result.vth:.3f} V",
+        },
+        {
+            "name": "R<sub>TH</sub>",
+            "expr": f"{r1} × {r2} / ({r1} + {r2})",
+            "value": f"{result.rth_kohm:.2f} kΩ",
+        },
+        {
+            "name": "I<sub>B</sub>",
+            "expr": (
+                f"({result.vth:.3f} V − {circuit.vbe:g} V) / "
+                f"({result.rth_kohm:.2f} kΩ + ({beta}+1) × {re})"
+            ),
+            "value": f"{result.ib_ua:.2f} µA",
+        },
+        {
+            "name": "I<sub>C</sub>",
+            "expr": f"{beta} × {result.ib_ua:.2f} µA",
+            "value": f"{result.ic_ma:.3f} mA",
+        },
+        {
+            "name": "V<sub>CE</sub>",
+            "expr": (
+                f"{circuit.vcc:g} V − {result.ic_ma:.3f} mA × {rc} "
+                f"− {result.ie_ma:.3f} mA × {re}"
+            ),
+            "value": f"{result.vce:.2f} V",
+        },
+    ]
+
+
 def _status_detail(result: BiasResult) -> str:
     if result.region == REGION_ACTIVE:
         return f"V<sub>CE</sub> = {result.vce:.2f} V &gt; 0.2 V (transistor in active region)"
@@ -150,6 +210,7 @@ def index():
         circuit=_circuit_labels(form),
         result=None,
         rows=[],
+        steps=[],
         error=None,
         status=None,
     )
@@ -160,7 +221,8 @@ def calculate_route():
     raw = _read_form()
     labels = _circuit_labels(raw)
     try:
-        result = calculate(parse_form(raw))
+        circuit = parse_form(raw)
+        result = calculate(circuit)
     except BiasInputError as exc:
         return render_template(
             "index.html",
@@ -168,6 +230,7 @@ def calculate_route():
             circuit=labels,
             result=None,
             rows=[],
+            steps=[],
             error=exc,
             status=None,
         )
@@ -178,6 +241,7 @@ def calculate_route():
         circuit=labels,
         result=result,
         rows=_result_rows(result),
+        steps=_steps(circuit, result),
         error=None,
         status={
             "level": REGION_LEVELS[result.region],

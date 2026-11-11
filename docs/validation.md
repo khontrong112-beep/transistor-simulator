@@ -66,6 +66,28 @@ VCE = VCC − IC·RC − IE·RE
 `IC·RC + IE·RE + VCE = 2.706 + 1.242 + 8.052 = 12.000 V = VCC` — the operating
 point is self-consistent.
 
+### Why the preview image in the lab sheet shows different numbers
+
+The lab sheet screenshot shows `VB = 2.20 V`, `VE = 1.50 V`, `VC = 8.70 V`,
+`VCE = 7.20 V`, `IB = 15.1 µA`, `IC = 1.50 mA`. Those values are **impossible**
+for the reference circuit, so they cannot be used as an answer key:
+
+- With `R1 = 100 kΩ`, `R2 = 22 kΩ`, `VCC = 12 V` the base divider sets
+  `VTH = 12 × 22 / 122 = 2.164 V` *before any base current is drawn*. Adding the
+  base load only pulls `VB` **down**, and the model result is `VB = 1.942 V`.
+  `VB = 2.20 V` would require a larger `R2/R1` ratio (or a higher `VCC`).
+- `VE = 1.50 V` implies `IE = 1.50 mA`, and `IC = 1.50 mA` with `β = 100` implies
+  `IB = 15 µA`. Those three currents form a *different* operating point.
+- The lab sheet states this explicitly in section 01B: *"ค่าตัวเลขบนหน้าจอเป็น
+  ค่าประกอบภาพ ไม่ใช่คำตอบอ้างอิง"* (the on-screen numbers are illustrative,
+  not a reference answer).
+
+Rubric item **A3** requires the program output to agree with the student's own
+hand calculation, so this project deliberately reproduces the physics
+(`1.94 / 1.24 / 9.29 / 8.05 / 12.3 µA / 1.23 mA`) instead of copying the mock
+values. The in-page "ขั้นตอนการคำนวณ" panel prints the full substitution trail so
+every displayed number can be re-checked with a calculator.
+
 ## 2. Unit handling
 
 The same circuit entered in ohms

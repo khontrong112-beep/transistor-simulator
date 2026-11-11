@@ -26,7 +26,8 @@
     </div>
   </header>
 
-  <main class="dashboard">
+  <main class="page">
+    <div class="dashboard">
     <!-- ── 1. INPUT ───────────────────────────────────────────── -->
     <section class="panel">
       <h2 class="panel-title">
@@ -264,6 +265,24 @@
         </p>
       {% endif %}
     </section>
+    </div>
+
+    {% if result %}
+    <section class="panel steps-panel">
+      <details class="steps" open>
+        <summary>ขั้นตอนการคำนวณ (ตรวจย้อนกลับได้)</summary>
+        <dl>
+          {% for step in steps %}
+          <dt>{{ step.name | safe }}</dt>
+          <dd>
+            <span class="expr">{{ step.expr }}</span>
+            <strong>= {{ step.value }}</strong>
+          </dd>
+          {% endfor %}
+        </dl>
+      </details>
+    </section>
+    {% endif %}
   </main>
 
   <footer class="footer">

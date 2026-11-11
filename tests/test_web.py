@@ -35,6 +35,8 @@ class WebRouteTest(unittest.TestCase):
         self.assertIn("8.05", body)  # VCE
         self.assertIn("1.23", body)  # IC in mA
         self.assertIn("1.94", body)  # VB
+        self.assertIn("ขั้นตอนการคำนวณ", body)  # substitution trail
+        self.assertIn("2.164", body)  # VTH shown in the steps panel
 
     def test_post_invalid_resistor_returns_a_readable_error(self):
         response = self.client.post("/calculate", data={**LAB_FORM, "r1": "0"})

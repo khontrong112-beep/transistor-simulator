@@ -89,6 +89,14 @@ VCE = VC − VE
 Assumptions: constant β, constant `VBE`, forward-active operation, no Early
 effect, no leakage, no temperature drift. This is **not** a SPICE simulation.
 
+> The sample numbers printed in the lab-sheet screenshot (`VB = 2.20 V`,
+> `VE = 1.50 V`, `VCE = 7.20 V`, `IB = 15.1 µA`) are marked there as
+> "ค่าประกอบภาพ" — illustrative only. They cannot be produced by
+> `VCC = 12 V, R1 = 100 kΩ, R2 = 22 kΩ` (the unloaded divider already caps
+> `VB` at 2.164 V). The app therefore reports the physically correct
+> `VB = 1.94 V, VE = 1.24 V, VCE = 8.05 V, IB = 12.3 µA`; see
+> `docs/validation.md` for the full derivation.
+
 ### Reported regions
 
 | Region | Condition | Behaviour |
